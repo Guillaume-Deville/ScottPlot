@@ -51,6 +51,25 @@ namespace ScottPlot
                 DrawMarker(gfx, pt, marker, size, brush, pen);
         }
 
+        public static void DrawMarkers(Graphics gfx, ICollection<PointF> pixelLocations, MarkerShape shape, float size, Color[] colors, float linewidth = 1)
+        {
+            IMarker marker = Marker.Create(shape);
+            if (pixelLocations.Count != colors.Length)
+                throw new ArgumentException("num pixel location must be the same as colors");
+            IEnumerator<PointF> enumerator = pixelLocations.GetEnumerator();
+
+            for (int i  = 0; i < pixelLocations.Count; i++)
+            {
+                using (SolidBrush brush = new SolidBrush(colors[i]))
+                using (Pen pen = new Pen(colors[i], linewidth))
+                {
+                    enumerator.MoveNext();
+                    PointF pt = enumerator.Current;
+                    DrawMarker(gfx, pt, marker, size, brush, pen);
+                }
+            }
+        }
+
         internal static PointF[] DiamondPoints(PointF center, float radius)
         {
             PointF[] points =

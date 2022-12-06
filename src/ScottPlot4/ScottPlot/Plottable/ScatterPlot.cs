@@ -15,6 +15,7 @@ namespace ScottPlot.Plottable
         // data
         public double[] Xs { get; private set; }
         public double[] Ys { get; private set; }
+        public Color[] Colors { get; private set; } = null;
         public double[] XError { get; set; }
         public double[] YError { get; set; }
         public string[] DataPointLabels { get; set; }
@@ -134,12 +135,13 @@ namespace ScottPlot.Plottable
         public int? MinRenderIndex { get; set; }
         public int? MaxRenderIndex { get; set; }
 
-        public ScatterPlot(double[] xs, double[] ys, double[] errorX = null, double[] errorY = null)
+        public ScatterPlot(double[] xs, double[] ys, double[] errorX = null, double[] errorY = null, Color[] colors = null)
         {
             Xs = xs;
             Ys = ys;
             XError = errorX;
             YError = errorY;
+            Colors = colors;
         }
 
         /// <summary>
@@ -151,6 +153,9 @@ namespace ScottPlot.Plottable
                 throw new ArgumentException("xs must not be null");
             if (xs.Length != Ys.Length)
                 throw new ArgumentException("xs and ys must have the same length");
+            if(Colors != null)
+                if (xs.Length != Colors.Length)
+                    throw new ArgumentException("xs and Colors must have the same length");
 
             Xs = xs;
         }
@@ -164,6 +169,9 @@ namespace ScottPlot.Plottable
                 throw new ArgumentException("ys must not be null");
             if (Xs.Length != ys.Length)
                 throw new ArgumentException("xs and ys must have the same length");
+            if (Colors != null)
+                if (ys.Length != Colors.Length)
+                    throw new ArgumentException("ys and Colors must have the same length");
 
             Ys = ys;
         }
@@ -171,7 +179,7 @@ namespace ScottPlot.Plottable
         /// <summary>
         /// Replace Xs and Ys arrays with new ones
         /// </summary>
-        public void Update(double[] xs, double[] ys)
+        public void Update(double[] xs, double[] ys, Color[] colors = null)
         {
             if (xs is null)
                 throw new ArgumentException("xs must not be null");
@@ -179,9 +187,13 @@ namespace ScottPlot.Plottable
                 throw new ArgumentException("ys must not be null");
             if (xs.Length != ys.Length)
                 throw new ArgumentException("xs and ys must have the same length");
+            if (Colors != null)
+                if (xs.Length != colors.Length)
+                    throw new ArgumentException("Xs and Colors must have the same length");
 
             Xs = xs;
             Ys = ys;
+            Colors = colors;
         }
 
         public void ValidateData(bool deep = false)
@@ -370,13 +382,19 @@ namespace ScottPlot.Plottable
             {
                 int from = MinRenderIndex ?? 0;
                 int to = MaxRenderIndex ?? (Xs.Length - 1);
-                PointF[] points = new PointF[to - from + 1];
+                int size = to - from + 1;
+                PointF[] points = new PointF[size];
+                Color[] color = new Color[size];
+                if(Colors != null)
+                    color = new Color[size];
 
                 for (int i = from; i <= to; i++)
                 {
                     float x = dims.GetPixelX(Xs[i] + OffsetX);
                     float y = dims.GetPixelY(Ys[i] + OffsetY);
                     points[i - from] = new PointF(x, y);
+                    if(Colors != null)
+                        color[i - from] = Colors[i];
                 }
 
                 if (YError != null)
@@ -449,7 +467,10 @@ namespace ScottPlot.Plottable
                 // draw a marker at each point
                 if ((MarkerSize > 0) && (MarkerShape != MarkerShape.none))
                 {
-                    MarkerTools.DrawMarkers(gfx, points, MarkerShape, MarkerSize, MarkerColor, MarkerLineWidth);
+                    if (Colors == null)
+                        MarkerTools.DrawMarkers(gfx, points, MarkerShape, MarkerSize, MarkerColor, MarkerLineWidth);
+                    else
+                        MarkerTools.DrawMarkers(gfx, points, MarkerShape, MarkerSize, Colors, MarkerLineWidth);
                 }
             }
         }
