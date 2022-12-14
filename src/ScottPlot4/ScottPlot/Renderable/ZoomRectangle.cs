@@ -10,9 +10,19 @@ namespace ScottPlot.Renderable
         private float Width;
         private float Height;
 
-        public Color FillColor { get; set; } = Color.FromArgb(50, Color.Red);
-        public Color BorderColor { get; set; } = Color.FromArgb(100, Color.Red);
+        public Color FillColor { get; set; }
+        public Color BorderColor { get; set; } 
         public bool IsVisible { get; set; } = true;
+
+        public ZoomRectangle() : this(Color.Red)
+        {
+        }
+
+        public ZoomRectangle(Color color)
+        {
+            FillColor = Color.FromArgb(80, color);
+            BorderColor = Color.FromArgb(100, color);
+        }
 
         public void Clear() => IsVisible = false;
 

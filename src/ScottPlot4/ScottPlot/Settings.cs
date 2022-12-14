@@ -1,4 +1,5 @@
 ﻿using ScottPlot.Drawing;
+using System.Diagnostics;
 using ScottPlot.Plottable;
 using ScottPlot.Renderable;
 using System;
@@ -38,7 +39,8 @@ namespace ScottPlot
         public readonly ErrorMessage ErrorMessage = new ErrorMessage();
         public readonly Legend CornerLegend = new Legend();
         public readonly ZoomRectangle ZoomRectangle = new ZoomRectangle();
-        public IPalette PlottablePalette = new Palettes.Category10();
+        public readonly ZoomRectangle SelectionRectangle = new ZoomRectangle(Color.Green);
+        public IPalette PlottablePalette = Palette.Category10;
 
         /// <summary>
         /// List of all axes used in this plot.
@@ -576,6 +578,58 @@ namespace ScottPlot
                 // TODO: dont require data offset shifting prior to calling this
                 ZoomRectangle.Set(left - XAxis.Dims.DataOffsetPx, top - YAxis.Dims.DataOffsetPx, width, height);
             }
+        }
+
+        public void MouseSelectionRect(float mouseNowX, float mouseNowY)
+        {
+            float left = Math.Min(MouseDownX, mouseNowX);
+            float right = Math.Max(MouseDownX, mouseNowX);
+            float top = Math.Min(MouseDownY, mouseNowY);
+            float bottom = Math.Max(MouseDownY, mouseNowY);
+            float width = right - left;
+            float height = bottom - top;
+
+            SelectionRectangle.Set(left - XAxis.Dims.DataOffsetPx, top - YAxis.Dims.DataOffsetPx, width, height);
+        }
+
+        public List<int> GetIndexesFromSelectionRectangle(float mouseNowX, float mouseNowY)
+        {
+            float left = Math.Min(MouseDownX, mouseNowX);
+            float right = Math.Max(MouseDownX, mouseNowX);
+            float top = Math.Min(MouseDownY, mouseNowY);
+            float bottom = Math.Max(MouseDownY, mouseNowY);
+
+            SelectionRectangle.Clear();
+
+            List<int> indexes = new List<int>();
+            foreach (IPlottable p in Plottables)
+            {
+                if(p is ScatterPlot)
+                {
+                    ScatterPlot scp = p as ScatterPlot;
+                    double xmin = XAxis.Dims.GetUnit(left);
+                    double xmax = XAxis.Dims.GetUnit(right);
+                    double ymin = YAxis.Dims.GetUnit(bottom);
+                    double ymax = YAxis.Dims.GetUnit(top);
+
+                    Debug.Assert(scp.Xs.Count() == scp.Ys.Count(), "Impossible case");
+                    for (int i = 0; i < scp.Xs.Count(); i++)
+                    {
+                        if (xmin <= scp.Xs[i] && scp.Xs[i] <= xmax && ymin <= scp.Ys[i] && scp.Ys[i] <= ymax)
+                        {
+                            indexes.Add(i);
+                        }
+                    }
+                    break;
+                }
+            }
+
+            Debug.WriteLine($"Data");
+            for (int i = 0; i < indexes.Count; i++)
+            {
+                Debug.WriteLine(indexes[i]);
+            }
+            return indexes;
         }
 
         /// <summary>

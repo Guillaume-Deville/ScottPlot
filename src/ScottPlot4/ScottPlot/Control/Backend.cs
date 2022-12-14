@@ -97,6 +97,7 @@ namespace ScottPlot.Control
         /// </summary>
         public event EventHandler LeftClickedPlottable = delegate { };
 
+        public event Action<List<int>> RectangleSelection;
         /// <summary>
         /// This event is invoked after the mouse moves while dragging a draggable plottable.
         /// </summary>
@@ -148,6 +149,11 @@ namespace ScottPlot.Control
         /// True when a zoom rectangle is being drawn and the mouse button is still down
         /// </summary>
         private bool IsZoomingRectangle;
+
+        /// <summary>
+        /// True when a selection rectangle is being draw and the mouse button is still down
+        /// </summary>
+        private bool IsSelectionRectangle;
 
         /// <summary>
         /// The plot underlying this control.
@@ -558,10 +564,16 @@ namespace ScottPlot.Control
             bool isZoomingRectangleWithMiddle = IsMiddleDown && Configuration.MiddleClickDragZoom;
 
             bool wasZoomingRectangle = IsZoomingRectangle;
-            IsZoomingRectangle = isZoomingRectangleWithAltLeft || isZoomingRectangleWithMiddle;
+            bool wasSelectionRectangle = IsSelectionRectangle;
+
+            IsZoomingRectangle = IsMiddleDown && Configuration.MiddleClickDragZoom;
+            IsSelectionRectangle = IsLeftDown && input.AltDown;
 
             if (wasZoomingRectangle && !IsZoomingRectangle)
                 Settings.ZoomRectangle.Clear();
+
+            if (wasSelectionRectangle && !IsSelectionRectangle)
+                Settings.SelectionRectangle.Clear();
 
             MouseDownTravelDistance += Math.Abs(input.X - MouseLocationX);
             MouseDownTravelDistance += Math.Abs(input.Y - MouseLocationY);
@@ -578,6 +590,8 @@ namespace ScottPlot.Control
                 mouseMoveEvent = EventFactory.CreateMouseZoom(input);
             else if (IsZoomingRectangle)
                 mouseMoveEvent = EventFactory.CreateMouseMovedToZoomRectangle(input.X, input.Y);
+            else if (IsSelectionRectangle)
+                mouseMoveEvent = EventFactory.CreateMouseMovedToSelectionRectangle(input.X, input.Y);
 
             if ((IsRightDown || IsMiddleDown) && (Cursor != Configuration.DefaultCursor))
             {
@@ -614,6 +628,7 @@ namespace ScottPlot.Control
 
                 bool lowQuality =
                     uiEvent is EventProcess.Events.MouseMovedToZoomRectangle ||
+                    uiEvent is EventProcess.Events.MouseMovedToSelectionRectangle ||
                     uiEvent is EventProcess.Events.MousePanEvent ||
                     uiEvent is EventProcess.Events.MouseZoomEvent ||
                     uiEvent is EventProcess.Events.PlottableDragEvent ||
@@ -678,6 +693,12 @@ namespace ScottPlot.Control
                 mouseEvent = EventFactory.CreateApplyZoomRectangleEvent(input.X, input.Y);
             else if (IsMiddleDown && Configuration.MiddleClickAutoAxis && MouseDownDragged == false)
                 mouseEvent = EventFactory.CreateMouseAutoAxis();
+            else if (IsSelectionRectangle)
+            {
+                List<int> indexes = Settings.GetIndexesFromSelectionRectangle(input.X, input.Y);
+                RectangleSelection?.Invoke(indexes);
+                mouseEvent = EventFactory.CreateMouseUpClearRender();
+            }
             else
                 mouseEvent = EventFactory.CreateMouseUpClearRender();
             ProcessEvent(mouseEvent);

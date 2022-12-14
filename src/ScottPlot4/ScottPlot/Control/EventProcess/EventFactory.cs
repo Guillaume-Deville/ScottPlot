@@ -32,6 +32,9 @@ namespace ScottPlot.Control.EventProcess
         public IUIEvent CreateMouseMovedToZoomRectangle(float x, float y) =>
              new MouseMovedToZoomRectangle(x, y, Settings, Configuration);
 
+        public IUIEvent CreateMouseMovedToSelectionRectangle(float x, float y) =>
+            new MouseMovedToSelectionRectangle(x, y, Settings, Configuration);
+
         public IUIEvent CreateMousePan(InputState input) =>
             new MousePanEvent(input, Configuration, Settings);
 

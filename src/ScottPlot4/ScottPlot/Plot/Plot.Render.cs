@@ -115,6 +115,7 @@ namespace ScottPlot
             settings.BenchmarkMessage.Stop();
 
             settings.ZoomRectangle.Render(dims, bmp, lowQuality);
+            settings.SelectionRectangle.Render(dims, bmp, lowQuality);
             settings.BenchmarkMessage.Render(dims, bmp, lowQuality);
             settings.ErrorMessage.Render(dims, bmp, lowQuality);
         }

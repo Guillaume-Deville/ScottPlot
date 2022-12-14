@@ -60,6 +60,8 @@ namespace ScottPlot
         /// </summary>
         public event EventHandler PlottableDropped;
 
+        public event Action<List<int>> SelectionRectangle;
+
         [Obsolete("use 'PlottableDropped' instead", error: true)]
         public event EventHandler MouseDropPlottable;
 
@@ -83,6 +85,7 @@ namespace ScottPlot
             Backend.AxesChanged += new EventHandler(OnAxesChanged);
             Backend.PlottableDragged += new EventHandler(OnPlottableDragged);
             Backend.PlottableDropped += new EventHandler(OnPlottableDropped);
+            Backend.RectangleSelection += new Action<List<int>>(OnSelectionRectangle);
             Configuration = Backend.Configuration;
 
             if (IsDesignerMode)
@@ -208,6 +211,7 @@ namespace ScottPlot
         private void OnBitmapUpdated(object sender, EventArgs e) { pictureBox1.Refresh(); }
         private void OnBitmapChanged(object sender, EventArgs e) { pictureBox1.Image = Backend.GetLatestBitmap(); }
         private void OnCursorChanged(object sender, EventArgs e) => Cursor = Cursors[Backend.Cursor];
+        private void OnSelectionRectangle(List<int> index) => SelectionRectangle.Invoke(index);
         private void OnSizeChanged(object sender, EventArgs e) => Backend.Resize(Width, Height, useDelayedRendering: true);
         private void OnAxesChanged(object sender, EventArgs e) => AxesChanged?.Invoke(this, e);
         private void OnRightClicked(object sender, EventArgs e) => RightClicked?.Invoke(this, e);
