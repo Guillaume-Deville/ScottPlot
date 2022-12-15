@@ -211,7 +211,7 @@ namespace ScottPlot
         private void OnBitmapUpdated(object sender, EventArgs e) { pictureBox1.Refresh(); }
         private void OnBitmapChanged(object sender, EventArgs e) { pictureBox1.Image = Backend.GetLatestBitmap(); }
         private void OnCursorChanged(object sender, EventArgs e) => Cursor = Cursors[Backend.Cursor];
-        private void OnSelectionRectangle(List<int> index) => SelectionRectangle.Invoke(index);
+        private void OnSelectionRectangle(List<int> index) => SelectionRectangle?.Invoke(index);
         private void OnSizeChanged(object sender, EventArgs e) => Backend.Resize(Width, Height, useDelayedRendering: true);
         private void OnAxesChanged(object sender, EventArgs e) => AxesChanged?.Invoke(this, e);
         private void OnRightClicked(object sender, EventArgs e) => RightClicked?.Invoke(this, e);
