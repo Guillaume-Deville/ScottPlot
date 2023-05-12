@@ -39,7 +39,7 @@ namespace ScottPlot
         public readonly ErrorMessage ErrorMessage = new ErrorMessage();
         public readonly Legend CornerLegend = new Legend();
         public readonly ZoomRectangle ZoomRectangle = new ZoomRectangle();
-        public readonly ZoomRectangle SelectionRectangle = new ZoomRectangle(Color.Green);
+        public readonly ZoomRectangle SelectionRectangle = new ZoomRectangle(Color.Blue);
         public IPalette PlottablePalette = Palette.Category10;
 
         /// <summary>
