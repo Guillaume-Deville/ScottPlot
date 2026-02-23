@@ -141,46 +141,50 @@ public class Legend(Plot plot) : IPlottable, IHasOutline, IHasBackground, IHasSh
     public virtual LegendItem[] GetItems()
     {
         List<LegendItem> items = [];
-
-        // manually added items with indexes come first
-        var manualItemsWithIndexes = ManualItems.Where(x => x.Index.HasValue).OrderBy(x => x.Index!.Value);
-        items.AddRange(manualItemsWithIndexes);
-
-        // items from plottables come next
-        if (DisplayPlottableLegendItems)
+        try
         {
-            var plottableLegendItems = Plot.PlottableList
-                        .Where(item => (ShowItemsFromHiddenPlottables || item.IsVisible))
-                        .SelectMany(x => x.LegendItems)
-                        .Where(x => !string.IsNullOrEmpty(x.LabelText));
+            // manually added items with indexes come first
+            var manualItemsWithIndexes = ManualItems.Where(x => x.Index.HasValue).OrderBy(x => x.Index!.Value);
+            items.AddRange(manualItemsWithIndexes);
 
-            items.AddRange(plottableLegendItems);
-        }
+            // items from plottables come next
+            if (DisplayPlottableLegendItems)
+            {
+                var plottableLegendItems = Plot.PlottableList
+                            .Where(item => (ShowItemsFromHiddenPlottables || item.IsVisible))
+                            .SelectMany(x => x.LegendItems)
+                            .Where(x => !string.IsNullOrEmpty(x.LabelText));
 
-        // manually added items without indexes are last
-        var manualItemsWithoutIndexes = ManualItems.Where(x => x.Index is null);
-        items.AddRange(manualItemsWithoutIndexes);
+                items.AddRange(plottableLegendItems);
+            }
 
-        items = items.Where(x => x.IsVisible).ToList();
+            // manually added items without indexes are last
+            var manualItemsWithoutIndexes = ManualItems.Where(x => x.Index is null);
+            items.AddRange(manualItemsWithoutIndexes);
 
-        if (SetBestFontOnEachRender)
-        {
+            items = items.Where(x => x.IsVisible).ToList();
+
+            if (SetBestFontOnEachRender)
+            {
+                foreach (LegendItem item in items)
+                {
+                    item.LabelStyle.SetBestFont();
+                }
+            }
+
             foreach (LegendItem item in items)
             {
-                item.LabelStyle.SetBestFont();
+                if (FontSize is not null)
+                    item.LabelFontSize = FontSize.Value;
+                if (FontName is not null)
+                    item.LabelFontName = FontName;
+                if (FontColor is not null)
+                    item.LabelFontColor = FontColor.Value;
             }
-        }
 
-        foreach (LegendItem item in items)
-        {
-            if (FontSize is not null)
-                item.LabelFontSize = FontSize.Value;
-            if (FontName is not null)
-                item.LabelFontName = FontName;
-            if (FontColor is not null)
-                item.LabelFontColor = FontColor.Value;
-        }
 
+        }
+        catch { }
         return items.ToArray();
     }
 
